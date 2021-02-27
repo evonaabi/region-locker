@@ -32,6 +32,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+
 import net.runelite.api.Client;
 import net.runelite.api.Point;
 import net.runelite.api.RenderOverview;
@@ -53,6 +54,8 @@ class RegionLockerOverlay extends Overlay
 	private final Client client;
 	private final RegionLockerConfig config;
 
+	public RegionCostManager costManager;
+
 	@Inject
 	private RegionLockerOverlay(Client client, RegionLockerConfig config)
 	{
@@ -61,6 +64,8 @@ class RegionLockerOverlay extends Overlay
 		setLayer(OverlayLayer.ALWAYS_ON_TOP);
 		this.client = client;
 		this.config = config;
+		this.costManager = new RegionCostManager();
+		costManager.InitCosts();
 	}
 
 	@Override
@@ -151,6 +156,13 @@ class RegionLockerOverlay extends Overlay
 				graphics.setColor(WHITE_TRANSLUCENT);
 				if (config.drawRegionId())
 					graphics.drawString(regionText, xPos + LABEL_PADDING, yPos + (int) textBounds.getHeight() + LABEL_PADDING);
+
+				if (config.DrawChunkCost())
+				{
+					int heightFromRegionId = config.drawRegionId()? 10 : 0;
+					graphics.drawString("chunk cost:", xPos + LABEL_PADDING, yPos + (int) textBounds.getHeight() + LABEL_PADDING + heightFromRegionId);
+					graphics.drawString(String.valueOf(costManager.GetChunkCost(regionText)), xPos + LABEL_PADDING, yPos + (int) textBounds.getHeight() + LABEL_PADDING + heightFromRegionId + 10);
+				}
 			}
 		}
 	}

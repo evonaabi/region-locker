@@ -52,6 +52,13 @@ public interface RegionLockerConfig extends Config
 	)
 	String mapSettings = "mapSettings";
 
+	@ConfigSection(
+			name = "XP Coffer settings",
+			description = "Settings relating to the XP Coffer",
+			position = 3
+	)
+	String xpCofferSettings = "xpCofferSettings";
+
 	// Region Settings
 
 	@ConfigItem(
@@ -326,5 +333,17 @@ public interface RegionLockerConfig extends Config
 	default Keybind blacklistKey()
 	{
 		return Keybind.CTRL;
+	}
+
+	@ConfigItem(
+			keyName = "DrawChunkCost",
+			name = "Draw chunk cost on world map",
+			description = "Draw the cost of the chunk on top of it on the world map.",
+			position = 37,
+			section = xpCofferSettings
+	)
+	default boolean DrawChunkCost()
+	{
+		return true;
 	}
 }

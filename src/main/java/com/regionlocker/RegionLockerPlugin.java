@@ -32,13 +32,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Setter;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.MessageNode;
-import net.runelite.api.Point;
-import net.runelite.api.RenderOverview;
+import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.FocusChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -88,6 +85,9 @@ public class RegionLockerPlugin extends Plugin
 	private RegionBorderOverlay regionBorderOverlay;
 
 	@Inject
+	private XPCofferOverlay xpCofferOverlay;
+
+	@Inject
 	private RegionLockerInput inputListener;
 
 	@Inject
@@ -104,6 +104,8 @@ public class RegionLockerPlugin extends Plugin
 
 	private RegionLocker regionLocker;
 
+	public int cofferXP;
+
 	@Provides
 	RegionLockerConfig provideConfig(ConfigManager configManager)
 	{
@@ -114,8 +116,10 @@ public class RegionLockerPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		regionLocker = new RegionLocker(client, config, configManager);
+		cofferXP = client.getSkillExperience(Skill.OVERALL);
 		overlayManager.add(regionLockerOverlay);
 		overlayManager.add(regionBorderOverlay);
+		overlayManager.add(xpCofferOverlay);
 		keyManager.registerKeyListener(inputListener);
 		setKeys();
 	}
@@ -152,6 +156,12 @@ public class RegionLockerPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onGameTick(GameTick tick)
+	{
+		cofferXP = client.getSkillExperience(Skill.OVERALL) - regionLockerOverlay.costManager.TotalChunkCost(regionLocker.getUnlockedRegions());
+	}
+
+	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
 		Widget map = client.getWidget(WidgetInfo.WORLD_MAP_VIEW);
@@ -178,8 +188,20 @@ public class RegionLockerPlugin extends Plugin
 
 		int regionId = ((x >> 6) << 8) | (y >> 6);
 
-		if (unlockKeyPressed) regionLocker.addRegion(regionId);
-		if (blockKeyPressed) regionLocker.blockRegion(regionId);
+		RegionTypes regionType = regionLocker.getType(regionId);
+		if (unlockKeyPressed && (regionType != null || cofferXP > regionLockerOverlay.costManager.GetChunkCost(String.valueOf(regionId))))
+		{
+			regionLocker.addRegion(regionId);
+
+			if (regionType == null)
+				cofferXP -= regionLockerOverlay.costManager.GetChunkCost(String.valueOf(regionId));
+			else if (regionType == RegionTypes.UNLOCKED)
+				cofferXP += regionLockerOverlay.costManager.GetChunkCost(String.valueOf(regionId));
+		}
+		if (blockKeyPressed)
+		{
+			regionLocker.blockRegion(regionId);
+		}
 	}
 
 	private void setKeys()

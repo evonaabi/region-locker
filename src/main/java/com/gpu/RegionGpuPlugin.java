@@ -934,10 +934,13 @@ public class RegionGpuPlugin extends Plugin implements DrawCallbacks
 	}
 
 	@Override
-	public void draw()
+	public void draw(int overlayColor)
 	{
 		invokeOnMainThread(this::drawFrame);
 	}
+
+	@Override
+	public void postDrawScene() { }
 
 	private void resize(int canvasWidth, int canvasHeight, int viewportWidth, int viewportHeight)
 	{

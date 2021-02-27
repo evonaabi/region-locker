@@ -123,6 +123,23 @@ public class RegionLocker
 		configManager.setConfiguration(RegionLockerPlugin.CONFIG_KEY, "blacklistedRegions", csv);
 	}
 
+	public List<String> getUnlockedRegions()
+	{
+		//also returns "unlockable" regions
+		List<String> unlockedRegions = new ArrayList<>();
+		List<String> unlockableRegions = new ArrayList<>();
+
+		regions.entrySet().forEach(e ->
+		{
+			if (e.getValue() == RegionTypes.UNLOCKED) unlockedRegions.add(e.getKey());
+			if (e.getValue() == RegionTypes.UNLOCKABLE) unlockableRegions.add(e.getKey());
+		});
+
+		unlockedRegions.addAll(unlockableRegions);
+
+		return unlockedRegions;
+	}
+
 	public void addRegion(int regionId)
 	{
 		String id = Integer.toString(regionId);
